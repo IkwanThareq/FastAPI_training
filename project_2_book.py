@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Path, Query, HTTPException
 from pydantic import BaseModel, Field
+from starlette import status
 from typing import Optional
 
 app = FastAPI()
@@ -55,12 +56,12 @@ BOOKS = [
     Book(6, 'HP3', 'Author 3', 'Book Description', 1,2024)
 ]
 
-@app.get("/books")
+@app.get("/books", status_code=status.HTTP_200_OK)
 async def read_all_books():
     return BOOKS
 
 # This below API endpoint is for fethcing data book by id
-@app.get("/books/{book_id}")
+@app.get("/books/{book_id}", status_code=status.HTTP_200_OK)
 #NOTE adding data validation in path paramenters
 async def read_book(book_id: int = Path(gt=0)):
     for book in BOOKS:
@@ -70,7 +71,7 @@ async def read_book(book_id: int = Path(gt=0)):
     raise HTTPException(status_code=404, detail='items not found')
         
 # api for filter by book rating , using query parameter
-@app.get("/books/")
+@app.get("/books/", status_code=status.HTTP_200_OK)
 async def read_book_by_rating(book_rating: int = Query(gt=0, lt=6)):
     #dibawah ini bikin empyt array buat masukin list by rating
     books_to_return = []
@@ -81,7 +82,7 @@ async def read_book_by_rating(book_rating: int = Query(gt=0, lt=6)):
 
 
 #create post request
-@app.post("/create_book")
+@app.post("/create_book", status_code=status.HTTP_201_CREATED)
 async def create_book(book_request: BookRequest):
     new_book = Book(**book_request.model_dump())
     
@@ -100,7 +101,7 @@ def find_book_id(book: Book):
 # this below is put request method, untuk update datanya yang ada 
 # NOTE API put ini blm ada exception handling, jadi kalau di kasih ID yg gk ada itu requestnya masih 200 dan berhasil
 # tapi itu masih salah, next akan diperbaiki
-@app.put("/books/update_book")
+@app.put("/books/update_book", status_code=status.HTTP_204_NO_CONTENT)
 async def update_book(book: BookRequest):
     #NOTE this code below will put check with httpException
     book_changed = False
@@ -112,7 +113,7 @@ async def update_book(book: BookRequest):
         raise HTTPException(status_code=404, detail='Item not found')
 
 # NOTE API below is delete method 
-@app.delete("/books/{book_id}")
+@app.delete("/books/{book_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_book(book_id: int = Path(gt = 0)):
     book_changed = False
     for i in range(len(BOOKS)):
@@ -124,7 +125,7 @@ async def delete_book(book_id: int = Path(gt = 0)):
         raise HTTPException(status_code=404, detail='Item not found')
 
 #NOTE this API below is to get the data book by query parameter using publish_date
-@app.get("/books/publish/")
+@app.get("/books/publish/", status_code=status.HTTP_200_OK)
 async def getBookByPublishDate(book_publish: int = Query(gt = 1999, lt=2031)):
     book_publish_date = []
     for book in BOOKS:
